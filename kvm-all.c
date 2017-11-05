@@ -1219,22 +1219,6 @@ static int kvm_dev_restore_snapshot(void)
 
 #endif
 
-#ifdef KVM_CAP_CPU_CLOCK_SCALE
-int kvm_has_cpu_clock_scale(void)
-{
-    if (!kvm_enabled()) {
-        return 0;
-    }
-
-    return kvm_state->cpu_clock_scale;
-}
-#else
-int kvm_has_cpu_clock_scale(void)
-{
-    return 0;
-}
-#endif
-
 extern volatile bool g_main_loop_thread_inited;
 static void kvm_clone_process(CPUArchState *env)
 {
@@ -1375,6 +1359,9 @@ int kvm_init(void)
 
 #ifdef KVM_CAP_CPU_CLOCK_SCALE
     s->cpu_clock_scale = kvm_check_extension(s, KVM_CAP_CPU_CLOCK_SCALE);
+    if (s->cpu_clock_scale) {
+        kvm_vm_ioctl(s, KVM_SET_CLOCK_SCALE, cpu_get_clock_scale_ptr());
+    }
 #endif
 
     ret = kvm_arch_init(s);
